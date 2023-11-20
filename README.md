@@ -1,7 +1,9 @@
-## Notes on asyncio constructs:
+## Notes on async IO constructs:
 
 - Event loop: You can think of an event loop as something like a `while True` loop that monitors coroutines, taking feedback on what’s idle, and looking around for things that can be executed in the meantime. It is able to wake up an idle coroutine when whatever that coroutine is waiting on becomes available.
 - `asyncio.run()`, introduced in Python 3.7, is responsible for getting the event loop, running tasks until they are marked as complete, and then closing the event loop.
 - Coroutines don’t do much on their own until they are tied to the event loop.
 - By default, an async IO event loop runs in a single thread and on a single CPU core. Usually, running one single-threaded event loop in one CPU core is more than sufficient. It is also possible to run event loops across multiple cores.
 - `async for` does not automatically parallelize the iterations. Instead it simply allows sequential iteration over an async source. Use case for using "async for" is to iterate(without blocking the event loop) over the lines coming from a TCP stream, msgs from a websocket or DB records from an async DB driver.
+- Python’s `requests` package isn’t compatible with async IO. `requests` is built on top of `urllib3`, which in turn uses Python’s `http` and `socket` modules. By default, socket operations are blocking. This means that Python won’t like `await requests.get(url)` because `.get()` is not awaitable. In contrast, almost everything in `aiohttp` is an awaitable coroutine, such as `session.request()` and `response.text()`. `requests` is a great package otherwise, but you should not use `requests` in asynchronous code.
+- You can use `asyncio.create_task()` to schedule the execution of a coroutine object, followed by `asyncio.run()`
